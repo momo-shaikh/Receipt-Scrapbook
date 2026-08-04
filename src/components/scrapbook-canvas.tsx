@@ -82,7 +82,7 @@ export function ScrapbookCanvas({
 
         const canvas = await html2canvas(node, {
           scale: 2,
-          backgroundColor: getComputedStyle(node).backgroundColor,
+          backgroundColor: getComputedStyle(document.body).backgroundColor,
         });
         return canvas.toDataURL("image/png");
       },
