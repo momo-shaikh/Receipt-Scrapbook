@@ -1,6 +1,13 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🧾 Receipt Scrapbook
+This digital scrapbook enables you to interactively create and share your cherished travel memories! 
 
-## Local Start Up
+Inspired by [@kele.zero's twist on travel receipts](https://www.instagram.com/reels/DNDM39QNXYn/), this scrapbook encourages you to save your own travel receipts and incorporate them into your unique scrapbook.
+
+All files uploads are locally stored within your browser & are not stored or uploaded anywhere else.
+
+![User Interface for the Receipt Scrapbook application](scrapbook-ui.png)
+
+## ⚡️ Local Start Up
 
 First, run the development server:
 
@@ -16,7 +23,7 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## Linting & Typechecking
+## ✍️ Linting & Typechecking
 
 ```bash
  npx eslint src --max-warnings=0  # linting
