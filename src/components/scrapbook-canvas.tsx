@@ -9,10 +9,9 @@ import {
   useSensors,
   type DragEndEvent,
 } from "@dnd-kit/core";
-import { toPng } from "html-to-image";
+import html2canvas from "html2canvas-pro";
 import type { ScrapbookItem } from "@/lib/db";
 import { updateScrapbookItemPosition } from "@/hooks/useScrapbookItems";
-import { blobToDataUrl } from "@/lib/blob-to-data-url";
 import { CANVAS_DRAG_BOUNDS } from "@/lib/canvas-bounds";
 import { ScrapbookItemCard } from "@/components/scrapbook-item-card";
 import { ScrapbookItemDetailDialog } from "@/components/scrapbook-item-detail-dialog";
@@ -81,34 +80,14 @@ export function ScrapbookCanvas({
         const node = containerRef.current;
         if (!node) throw new Error("Canvas not mounted");
 
-        // Safari can't resolve blob: URLs when html-to-image rasterizes the
-        // DOM via an SVG foreignObject, so swap each image to a base64 data
-        // URL for the capture, then restore the blob URL afterward.
-        const imgEls = Array.from(
-          node.querySelectorAll<HTMLImageElement>("img[data-item-id]"),
-        );
-        const byId = new Map(items.map((item) => [item.id, item]));
-        const originalSrcs = imgEls.map((img) => img.src);
-
-        try {
-          await Promise.all(
-            imgEls.map(async (img) => {
-              const item = byId.get(img.dataset.itemId ?? "");
-              if (item?.imageBlob) img.src = await blobToDataUrl(item.imageBlob);
-            }),
-          );
-          return await toPng(node, {
-            pixelRatio: 2,
-            backgroundColor: getComputedStyle(node).backgroundColor,
-          });
-        } finally {
-          imgEls.forEach((img, i) => {
-            img.src = originalSrcs[i];
-          });
-        }
+        const canvas = await html2canvas(node, {
+          scale: 2,
+          backgroundColor: getComputedStyle(node).backgroundColor,
+        });
+        return canvas.toDataURL("image/png");
       },
     }),
-    [items],
+    [],
   );
 
   function handleDragEnd(event: DragEndEvent) {
