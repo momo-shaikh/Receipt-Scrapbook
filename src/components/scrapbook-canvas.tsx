@@ -10,6 +10,8 @@ import {
   type DragEndEvent,
 } from "@dnd-kit/core";
 import html2canvas from "html2canvas-pro";
+import { Pencil, RotateCw } from "lucide-react";
+import { toast } from "sonner";
 import type { ScrapbookItem } from "@/lib/db";
 import { updateScrapbookItemPosition } from "@/hooks/useScrapbookItems";
 import { CANVAS_DRAG_BOUNDS } from "@/lib/canvas-bounds";
@@ -20,36 +22,224 @@ function clamp(n: number, min: number, max: number) {
   return Math.min(max, Math.max(min, n));
 }
 
+function persistPosition(
+  id: string,
+  position: { x: number; y: number; rotation: number; scale: number },
+) {
+  updateScrapbookItemPosition(id, position).catch(() => {
+    toast.error("Couldn't save that change — try again.");
+  });
+}
+
+function normalizeAngle(deg: number): number {
+  let a = deg % 360;
+  if (a > 180) a -= 360;
+  if (a < -180) a += 360;
+  return a;
+}
+
+function useResizeGesture(
+  cardRef: React.RefObject<HTMLDivElement | null>,
+  startScale: number,
+  onResize: (scale: number) => void,
+  onResizeEnd: (scale: number) => void,
+) {
+  const [isResizing, setIsResizing] = useState(false);
+
+  function handlePointerDown(e: React.PointerEvent<HTMLButtonElement>) {
+    e.stopPropagation();
+    e.preventDefault();
+    const cardEl = cardRef.current;
+    if (!cardEl) return;
+
+    const rect = cardEl.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const startDist = Math.hypot(e.clientX - centerX, e.clientY - centerY);
+    if (startDist === 0) return;
+    const target = e.currentTarget;
+    target.setPointerCapture(e.pointerId);
+    setIsResizing(true);
+
+    function scaleFromPointer(clientX: number, clientY: number) {
+      const dist = Math.hypot(clientX - centerX, clientY - centerY);
+      return startScale * (dist / startDist);
+    }
+
+    function handlePointerMove(moveEvent: PointerEvent) {
+      onResize(scaleFromPointer(moveEvent.clientX, moveEvent.clientY));
+    }
+
+    function handlePointerUp(upEvent: PointerEvent) {
+      target.releasePointerCapture(e.pointerId);
+      target.removeEventListener("pointermove", handlePointerMove);
+      target.removeEventListener("pointerup", handlePointerUp);
+      onResizeEnd(scaleFromPointer(upEvent.clientX, upEvent.clientY));
+      setIsResizing(false);
+    }
+
+    target.addEventListener("pointermove", handlePointerMove);
+    target.addEventListener("pointerup", handlePointerUp);
+  }
+
+  return { isResizing, handlePointerDown };
+}
+
+function useRotateGesture(
+  cardRef: React.RefObject<HTMLDivElement | null>,
+  onRotate: (rotation: number) => void,
+  onRotateEnd: (rotation: number) => void,
+) {
+  const [isRotating, setIsRotating] = useState(false);
+
+  function angleFromPointer(centerX: number, centerY: number, clientX: number, clientY: number) {
+    const dx = clientX - centerX;
+    const dy = clientY - centerY;
+    return normalizeAngle((Math.atan2(dy, dx) * 180) / Math.PI + 90);
+  }
+
+  function handlePointerDown(e: React.PointerEvent<HTMLButtonElement>) {
+    e.stopPropagation();
+    e.preventDefault();
+    const cardEl = cardRef.current;
+    if (!cardEl) return;
+
+    const rect = cardEl.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const target = e.currentTarget;
+    target.setPointerCapture(e.pointerId);
+    setIsRotating(true);
+
+    function handlePointerMove(moveEvent: PointerEvent) {
+      onRotate(angleFromPointer(centerX, centerY, moveEvent.clientX, moveEvent.clientY));
+    }
+
+    function handlePointerUp(upEvent: PointerEvent) {
+      target.releasePointerCapture(e.pointerId);
+      target.removeEventListener("pointermove", handlePointerMove);
+      target.removeEventListener("pointerup", handlePointerUp);
+      onRotateEnd(angleFromPointer(centerX, centerY, upEvent.clientX, upEvent.clientY));
+      setIsRotating(false);
+    }
+
+    target.addEventListener("pointermove", handlePointerMove);
+    target.addEventListener("pointerup", handlePointerUp);
+  }
+
+  return { isRotating, handlePointerDown };
+}
+
 function DraggableScrapbookItem({
   item,
-  onOpen,
+  isSelected,
+  onSelect,
+  onEdit,
 }: {
   item: ScrapbookItem;
-  onOpen: (item: ScrapbookItem) => void;
+  isSelected: boolean;
+  onSelect: (item: ScrapbookItem) => void;
+  onEdit: (item: ScrapbookItem) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: item.id,
   });
   const { x, y } = transform ?? { x: 0, y: 0 };
 
+  const itemScale = item.position.scale ?? 1;
+
+  const cardRef = useRef<HTMLDivElement | null>(null);
+  const [liveRotation, setLiveRotation] = useState<number | null>(null);
+  const { isRotating, handlePointerDown } = useRotateGesture(
+    cardRef,
+    setLiveRotation,
+    (rotation) => {
+      persistPosition(item.id, { ...item.position, scale: itemScale, rotation });
+      setLiveRotation(null);
+    },
+  );
+  const rotation = liveRotation ?? item.position.rotation;
+
+  const [liveScale, setLiveScale] = useState<number | null>(null);
+  const { isResizing, handlePointerDown: handleResizePointerDown } = useResizeGesture(
+    cardRef,
+    itemScale,
+    setLiveScale,
+    (scale) => {
+      persistPosition(item.id, { ...item.position, scale });
+      setLiveScale(null);
+    },
+  );
+  const scale = liveScale ?? itemScale;
+
   const style: React.CSSProperties = {
     position: "absolute",
     left: `${item.position.x}%`,
     top: `${item.position.y}%`,
-    transform: `translate3d(${x}px, ${y}px, 0) rotate(${item.position.rotation}deg)`,
+    transform: `translate3d(${x}px, ${y}px, 0) rotate(${rotation}deg) scale(${scale})`,
     touchAction: "none",
-    zIndex: isDragging ? 50 : 1,
+    zIndex: isDragging || isRotating || isResizing || isSelected ? 50 : 1,
   };
+
+  const cornerHandles = [
+    { position: "-top-1.5 -left-1.5", cursor: "cursor-nwse-resize" },
+    { position: "-top-1.5 -right-1.5", cursor: "cursor-nesw-resize" },
+    { position: "-bottom-1.5 -left-1.5", cursor: "cursor-nesw-resize" },
+    { position: "-bottom-1.5 -right-1.5", cursor: "cursor-nwse-resize" },
+  ];
 
   return (
     <div
-      ref={setNodeRef}
+      ref={(el) => {
+        setNodeRef(el);
+        cardRef.current = el;
+      }}
       style={style}
       {...listeners}
       {...attributes}
-      onClick={() => !isDragging && onOpen(item)}
-      className="cursor-grab active:cursor-grabbing"
+      onClick={(e) => {
+        e.stopPropagation();
+        if (!isDragging && !isRotating) onSelect(item);
+      }}
+      className={`cursor-grab active:cursor-grabbing ${isSelected ? "pencil-outline" : ""}`}
     >
+      {isSelected && (
+        <>
+          {cornerHandles.map(({ position, cursor }) => (
+            <button
+              key={position}
+              type="button"
+              aria-label="Resize"
+              data-html2canvas-ignore="true"
+              onPointerDown={handleResizePointerDown}
+              onClick={(e) => e.stopPropagation()}
+              className={`absolute ${position} ${cursor} z-20 h-3 w-3 touch-none rounded-full border border-paper-line bg-card shadow-polaroid transition-shadow hover:ring-2 hover:ring-film`}
+            />
+          ))}
+          <button
+            type="button"
+            aria-label="Rotate"
+            data-html2canvas-ignore="true"
+            onPointerDown={handlePointerDown}
+            onClick={(e) => e.stopPropagation()}
+            className="absolute -top-7 left-1/2 z-20 flex h-6 w-6 -translate-x-1/2 touch-none cursor-grab items-center justify-center rounded-full border border-paper-line bg-card text-ink-soft shadow-polaroid transition-shadow hover:ring-2 hover:ring-film active:cursor-grabbing"
+          >
+            <RotateCw className="h-3 w-3" />
+          </button>
+          <button
+            type="button"
+            aria-label="Edit"
+            data-html2canvas-ignore="true"
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(item);
+            }}
+            className="absolute -top-7 left-[calc(50%+2rem)] z-20 flex h-6 w-6 -translate-x-1/2 items-center justify-center rounded-full border border-paper-line bg-card text-ink-soft shadow-polaroid transition-shadow hover:ring-2 hover:ring-film"
+          >
+            <Pencil className="h-3 w-3" />
+          </button>
+        </>
+      )}
       <ScrapbookItemCard item={item} />
     </div>
   );
@@ -68,6 +258,7 @@ export function ScrapbookCanvas({
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState<ScrapbookItem | null>(null);
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -103,11 +294,7 @@ export function ScrapbookCanvas({
     const nextX = clamp(item.position.x + deltaXPct, CANVAS_DRAG_BOUNDS.minX, CANVAS_DRAG_BOUNDS.maxX);
     const nextY = clamp(item.position.y + deltaYPct, CANVAS_DRAG_BOUNDS.minY, CANVAS_DRAG_BOUNDS.maxY);
 
-    updateScrapbookItemPosition(item.id, {
-      x: nextX,
-      y: nextY,
-      rotation: item.position.rotation,
-    });
+    persistPosition(item.id, { ...item.position, scale: item.position.scale ?? 1, x: nextX, y: nextY });
   }
 
   return (
@@ -115,10 +302,17 @@ export function ScrapbookCanvas({
       <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
         <div
           ref={containerRef}
+          onClick={() => setSelectedItemId(null)}
           className="bg-dot-grid bg-paper-grain relative min-h-[70vh] w-full overflow-hidden rounded-2xl border border-paper-line"
         >
           {items.map((item) => (
-            <DraggableScrapbookItem key={item.id} item={item} onOpen={setSelected} />
+            <DraggableScrapbookItem
+              key={item.id}
+              item={item}
+              isSelected={selectedItemId === item.id}
+              onSelect={(selectedItem) => setSelectedItemId(selectedItem.id)}
+              onEdit={setSelected}
+            />
           ))}
         </div>
       </DndContext>

@@ -48,7 +48,7 @@ export async function createScrapbookItem(input: {
     vendor: input.vendor,
     amount: input.amount,
     currency: input.currency,
-    position: { ...input.position, rotation: randomRotation() },
+    position: { ...input.position, rotation: randomRotation(), scale: 1 },
     decoration: input.type === "photo" ? "polaroid" : randomDecoration(),
     createdAt: Date.now(),
   };
@@ -62,7 +62,7 @@ export async function updateScrapbookItem(id: string, changes: Partial<Scrapbook
 
 export async function updateScrapbookItemPosition(
   id: string,
-  position: { x: number; y: number; rotation: number },
+  position: { x: number; y: number; rotation: number; scale: number },
 ) {
   await db.items.update(id, { position });
 }

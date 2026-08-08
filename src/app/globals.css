@@ -204,6 +204,13 @@
     box-shadow: 0 1px 1px oklch(0.27 0.025 50 / 0.1);
   }
 
+  .pencil-outline {
+    box-shadow:
+      0 0 0 1px oklch(60.267% 0.01415 55.955 / 0.7),
+      0 0 0 2.5px oklch(0.32 0.015 50 / 0.25),
+      0 0 3px 1.5px oklch(0.32 0.015 50 / 0.35);
+  }
+
   /* Digicam-style burned-in timestamp */
   .timestamp-digicam {
     font-family: var(--font-mono);

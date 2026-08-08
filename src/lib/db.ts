@@ -23,11 +23,10 @@ export interface ScrapbookItem {
   imageBlob?: Blob;
   caption: string;
   date: string; // ISO date
-  // Reserved for a future OCR "autofill" pass — entered manually for now.
   vendor?: string;
   amount?: number;
   currency?: string;
-  position: { x: number; y: number; rotation: number };
+  position: { x: number; y: number; rotation: number; scale: number };
   decoration: Decoration;
   createdAt: number;
 }
