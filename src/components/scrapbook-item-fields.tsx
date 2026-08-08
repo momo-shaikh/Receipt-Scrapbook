@@ -62,25 +62,24 @@ export function ReceiptFields({
   onCurrencyChange: (value: string) => void;
   optional?: boolean;
 }) {
-  const suffix = optional ? " (optional)" : "";
   return (
     <div className="grid grid-cols-4 gap-4">
       <div className="col-span-2 grid gap-2">
-        <Label htmlFor={`${idPrefix}-vendor`}>Vendor{suffix}</Label>
+        <Label htmlFor={`${idPrefix}-vendor`}>Vendor</Label>
         <Input
           id={`${idPrefix}-vendor`}
-          placeholder={optional ? "Ichiran" : undefined}
+          placeholder={optional ? "Example - Ichiran" : undefined}
           value={vendor}
           onChange={(e) => onVendorChange(e.target.value)}
         />
       </div>
       <div className="grid gap-2">
-        <Label htmlFor={`${idPrefix}-amount`}>Amount{suffix}</Label>
+        <Label htmlFor={`${idPrefix}-amount`}>Amount</Label>
         <Input
           id={`${idPrefix}-amount`}
           type="number"
           inputMode="decimal"
-          placeholder={optional ? "1280" : undefined}
+          placeholder={optional ? "Ex - 200" : undefined}
           value={amount}
           onChange={(e) => onAmountChange(e.target.value)}
         />
@@ -89,7 +88,7 @@ export function ReceiptFields({
         <Label htmlFor={`${idPrefix}-currency`}>Currency</Label>
         <Input
           id={`${idPrefix}-currency`}
-          placeholder={optional ? "JPY" : undefined}
+          placeholder={optional ? "Ex - ¥" : undefined}
           value={currency}
           onChange={(e) => onCurrencyChange(e.target.value)}
         />

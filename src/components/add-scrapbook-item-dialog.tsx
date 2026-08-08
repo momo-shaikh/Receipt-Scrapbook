@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { Camera, Receipt as ReceiptIcon, UploadCloud } from "lucide-react";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -97,6 +98,8 @@ export function AddScrapbookItemDialog({
         position: randomPosition(),
       });
       onOpenChange(false);
+    } catch {
+      toast.error("Couldn't add that to your scrapbook — try again.");
     } finally {
       setSubmitting(false);
     }
@@ -150,7 +153,6 @@ export function AddScrapbookItemDialog({
             >
               <input {...getInputProps()} />
               {previewUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={previewUrl}
                   alt=""
@@ -172,8 +174,8 @@ export function AddScrapbookItemDialog({
               onCaptionChange={setCaption}
               captionPlaceholder={
                 type === "receipt"
-                  ? "Ichiran Ramen, Shibuya"
-                  : "View from the top of Kiyomizu-dera"
+                  ? "Example - Ichiran Ramen, Shibuya"
+                  : "Example - View from the top of Kiyomizu-dera"
               }
               date={date}
               onDateChange={setDate}

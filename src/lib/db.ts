@@ -2,6 +2,8 @@ import Dexie, { type EntityTable } from "dexie";
 
 export type ItemType = "receipt" | "photo";
 export type Decoration = "tape" | "pin" | "sticker" | "polaroid";
+export const TIMESTAMP_COLORS = ["yellow", "orange", "red", "blue"] as const;
+export type TimestampColor = (typeof TIMESTAMP_COLORS)[number];
 
 export const DEFAULT_THEME_COLOR = "#a3d9b1";
 
@@ -12,7 +14,7 @@ export interface Trip {
   startDate: string; // ISO date
   endDate: string; // ISO date
   coverImage?: Blob;
-  themeColor: string; // one of the palette accent keys, e.g. "mint" | "blush" | "butter"
+  themeColor: string;
   createdAt: number;
 }
 
@@ -28,6 +30,7 @@ export interface ScrapbookItem {
   currency?: string;
   position: { x: number; y: number; rotation: number; scale: number };
   decoration: Decoration;
+  timestampColor?: TimestampColor;
   createdAt: number;
 }
 

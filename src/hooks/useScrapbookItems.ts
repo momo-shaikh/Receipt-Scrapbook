@@ -1,13 +1,24 @@
 "use client";
 
 import { useLiveQuery } from "dexie-react-hooks";
-import { db, type Decoration, type ItemType, type ScrapbookItem } from "@/lib/db";
+import {
+  db,
+  TIMESTAMP_COLORS,
+  type Decoration,
+  type ItemType,
+  type ScrapbookItem,
+  type TimestampColor,
+} from "@/lib/db";
 import { releaseCachedObjectUrl } from "@/lib/object-url-cache";
 
 const DECORATIONS: Decoration[] = ["tape", "pin", "sticker", "polaroid"];
 
 function randomDecoration(): Decoration {
   return DECORATIONS[Math.floor(Math.random() * DECORATIONS.length)];
+}
+
+function randomTimestampColor(): TimestampColor {
+  return TIMESTAMP_COLORS[Math.floor(Math.random() * TIMESTAMP_COLORS.length)];
 }
 
 function randomRotation() {
@@ -38,11 +49,15 @@ export async function createScrapbookItem(input: {
   currency?: string;
   position: { x: number; y: number };
 }): Promise<ScrapbookItem> {
+  const imageBlob = input.imageBlob
+    ? new Blob([input.imageBlob], { type: input.imageBlob.type })
+    : undefined;
+
   const item: ScrapbookItem = {
     id: crypto.randomUUID(),
     tripId: input.tripId,
     type: input.type,
-    imageBlob: input.imageBlob,
+    imageBlob,
     caption: input.caption,
     date: input.date,
     vendor: input.vendor,
@@ -50,6 +65,7 @@ export async function createScrapbookItem(input: {
     currency: input.currency,
     position: { ...input.position, rotation: randomRotation(), scale: 1 },
     decoration: input.type === "photo" ? "polaroid" : randomDecoration(),
+    timestampColor: randomTimestampColor(),
     createdAt: Date.now(),
   };
   await db.items.add(item);

@@ -15,6 +15,7 @@
   --color-paper-line: var(--paper-line);
   --color-ink: var(--ink);
   --color-ink-soft: var(--ink-soft);
+  --color-ink-strong: var(--ink-strong);
   --color-mint: var(--mint);
   --color-blush: var(--blush);
   --color-butter: var(--butter);
@@ -64,7 +65,8 @@
   --paper: oklch(0.975 0.014 85);
   --paper-line: oklch(0.9 0.02 85);
   --ink: oklch(0.27 0.025 50);
-  --ink-soft: oklch(0.5 0.02 50);
+  --ink-soft: oklch(68.433% 0.00271 47.594);
+  --ink-strong: oklch(7.699% 0.01148 19.999);
   --mint: oklch(0.86 0.05 165);
   --blush: oklch(0.88 0.045 25);
   --butter: oklch(0.9 0.06 95);
@@ -111,6 +113,7 @@
   --paper-line: oklch(0.3 0.015 50);
   --ink: oklch(0.93 0.015 85);
   --ink-soft: oklch(0.72 0.015 85);
+  --ink-strong: oklch(0.98 0.01 85);
   --mint: oklch(0.4 0.05 165);
   --blush: oklch(0.42 0.045 25);
   --butter: oklch(0.45 0.06 95);
@@ -215,7 +218,23 @@
   .timestamp-digicam {
     font-family: var(--font-mono);
     letter-spacing: 0.05em;
+  }
+
+  /* Classic digicam/polaroid timestamp colors, picked per-item */
+  .timestamp-yellow {
     color: oklch(0.85 0.15 95);
     text-shadow: 0 0 4px oklch(0.85 0.15 95 / 0.6);
+  }
+  .timestamp-orange {
+    color: oklch(0.8 0.16 55);
+    text-shadow: 0 0 4px oklch(0.8 0.16 55 / 0.6);
+  }
+  .timestamp-red {
+    color: oklch(0.65 0.2 25);
+    text-shadow: 0 0 4px oklch(0.65 0.2 25 / 0.6);
+  }
+  .timestamp-blue {
+    color: oklch(0.8 0.1 220);
+    text-shadow: 0 0 4px oklch(0.8 0.1 220 / 0.6);
   }
 }

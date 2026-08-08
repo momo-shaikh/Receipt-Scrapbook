@@ -48,7 +48,9 @@ export function ScrapbookItemCard({ item }: { item: ScrapbookItem }) {
               draggable={false}
             />
           )}
-          <span className="timestamp-digicam absolute right-1.5 bottom-1.5 text-[10px]">
+          <span
+            className={`timestamp-digicam timestamp-${item.timestampColor ?? "yellow"} absolute right-1.5 bottom-1.5 text-[10px]`}
+          >
             {digicamTimestamp(item.date)}
           </span>
         </div>
