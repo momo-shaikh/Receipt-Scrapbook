@@ -18,7 +18,7 @@ import { createScrapbookItem } from "@/hooks/useScrapbookItems";
 import { useObjectUrl } from "@/hooks/useObjectUrl";
 import { releaseCachedObjectUrl } from "@/lib/object-url-cache";
 import { CANVAS_SPAWN_BOUNDS } from "@/lib/canvas-bounds";
-import type { ItemType } from "@/lib/db";
+import type { ItemType, ScrapbookItem } from "@/lib/db";
 import { cn } from "@/lib/utils";
 
 function randomPosition() {
@@ -34,11 +34,13 @@ function draftKeyFor(file: File) {
 
 export function AddScrapbookItemDialog({
   tripId,
+  items,
   open,
   onOpenChange,
   defaultDate,
 }: {
   tripId: string;
+  items: ScrapbookItem[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
   defaultDate?: string;
@@ -96,6 +98,7 @@ export function AddScrapbookItemDialog({
         amount: type === "receipt" && amount ? parseFloat(amount) : undefined,
         currency: type === "receipt" && currency.trim() ? currency.trim() : undefined,
         position: randomPosition(),
+        existingItems: items,
       });
       onOpenChange(false);
     } catch {
@@ -153,6 +156,7 @@ export function AddScrapbookItemDialog({
             >
               <input {...getInputProps()} />
               {previewUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={previewUrl}
                   alt=""

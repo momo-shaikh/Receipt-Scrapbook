@@ -48,10 +48,13 @@ export async function createScrapbookItem(input: {
   amount?: number;
   currency?: string;
   position: { x: number; y: number };
+  existingItems: ScrapbookItem[];
 }): Promise<ScrapbookItem> {
   const imageBlob = input.imageBlob
     ? new Blob([input.imageBlob], { type: input.imageBlob.type })
     : undefined;
+
+  const maxZIndex = input.existingItems.reduce((max, item) => Math.max(max, item.zIndex ?? 0), 0);
 
   const item: ScrapbookItem = {
     id: crypto.randomUUID(),
@@ -66,6 +69,7 @@ export async function createScrapbookItem(input: {
     position: { ...input.position, rotation: randomRotation(), scale: 1 },
     decoration: input.type === "photo" ? "polaroid" : randomDecoration(),
     timestampColor: randomTimestampColor(),
+    zIndex: maxZIndex + 1,
     createdAt: Date.now(),
   };
   await db.items.add(item);
@@ -81,6 +85,30 @@ export async function updateScrapbookItemPosition(
   position: { x: number; y: number; rotation: number; scale: number },
 ) {
   await db.items.update(id, { position });
+}
+
+function sortedByZIndex(items: ScrapbookItem[]): ScrapbookItem[] {
+  return [...items].sort((a, b) => (a.zIndex ?? 0) - (b.zIndex ?? 0));
+}
+
+export async function bringScrapbookItemForward(id: string, items: ScrapbookItem[]) {
+  const sorted = sortedByZIndex(items);
+  const index = sorted.findIndex((item) => item.id === id);
+  const current = sorted[index];
+  const next = sorted[index + 1];
+  if (!current || !next) return;
+  await db.items.update(current.id, { zIndex: next.zIndex });
+  await db.items.update(next.id, { zIndex: current.zIndex });
+}
+
+export async function sendScrapbookItemBackward(id: string, items: ScrapbookItem[]) {
+  const sorted = sortedByZIndex(items);
+  const index = sorted.findIndex((item) => item.id === id);
+  const current = sorted[index];
+  const prev = sorted[index - 1];
+  if (index <= 0 || !current || !prev) return;
+  await db.items.update(current.id, { zIndex: prev.zIndex });
+  await db.items.update(prev.id, { zIndex: current.zIndex });
 }
 
 export async function deleteScrapbookItem(id: string) {

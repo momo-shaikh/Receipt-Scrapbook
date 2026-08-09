@@ -31,6 +31,7 @@ export interface ScrapbookItem {
   position: { x: number; y: number; rotation: number; scale: number };
   decoration: Decoration;
   timestampColor?: TimestampColor;
+  zIndex: number;
   createdAt: number;
 }
 

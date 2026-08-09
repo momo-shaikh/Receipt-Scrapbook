@@ -97,6 +97,7 @@ export default function TripPage({
 
       <AddScrapbookItemDialog
         tripId={id}
+        items={items}
         open={addOpen}
         onOpenChange={setAddOpen}
         defaultDate={trip.startDate}
