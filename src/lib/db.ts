@@ -1,7 +1,8 @@
 import Dexie, { type EntityTable } from "dexie";
 
 export type ItemType = "receipt" | "photo";
-export type Decoration = "tape" | "pin" | "sticker" | "polaroid";
+export const DECORATIONS = ["tape", "pin", "sticker", "heart", "star", "polaroid"] as const;
+export type Decoration = (typeof DECORATIONS)[number];
 export const TIMESTAMP_COLORS = ["yellow", "orange", "red", "blue"] as const;
 export type TimestampColor = (typeof TIMESTAMP_COLORS)[number];
 

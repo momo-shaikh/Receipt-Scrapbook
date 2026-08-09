@@ -12,9 +12,20 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { PhotoFields, ReceiptFields } from "@/components/scrapbook-item-fields";
+import { DECORATION_LABELS, DecorationGraphic } from "@/components/scrapbook-decorations";
 import { deleteScrapbookItem, updateScrapbookItem } from "@/hooks/useScrapbookItems";
-import { TIMESTAMP_COLORS, type ScrapbookItem } from "@/lib/db";
+import { DECORATIONS, TIMESTAMP_COLORS, type Decoration, type ScrapbookItem } from "@/lib/db";
 import { useObjectUrl } from "@/hooks/useObjectUrl";
+
+function DecorationPreview({ decoration }: { decoration: Decoration }) {
+  if (decoration === "tape") {
+    return <div className="washi-tape h-4 w-8 -rotate-3 rounded-sm" />;
+  }
+  if (decoration === "polaroid") {
+    return <span className="text-[10px] text-ink-soft">None</span>;
+  }
+  return <DecorationGraphic decoration={decoration} className="h-4 w-4" />;
+}
 
 export function ScrapbookItemDetailDialog({
   item,
@@ -30,6 +41,7 @@ export function ScrapbookItemDetailDialog({
   const [amount, setAmount] = useState(item.amount != null ? String(item.amount) : "");
   const [currency, setCurrency] = useState(item.currency ?? "");
   const [timestampColor, setTimestampColor] = useState(item.timestampColor ?? "yellow");
+  const [decoration, setDecoration] = useState(item.decoration);
   const [saving, setSaving] = useState(false);
 
   async function handleSave() {
@@ -42,6 +54,7 @@ export function ScrapbookItemDetailDialog({
         amount: item.type === "receipt" && amount ? parseFloat(amount) : undefined,
         currency: item.type === "receipt" && currency.trim() ? currency.trim() : undefined,
         timestampColor: item.type === "photo" ? timestampColor : undefined,
+        decoration,
       });
       onOpenChange(false);
     } finally {
@@ -80,6 +93,25 @@ export function ScrapbookItemDetailDialog({
             date={date}
             onDateChange={setDate}
           />
+
+          <div className="grid gap-2">
+            <Label>Decoration</Label>
+            <div className="flex gap-2">
+              {DECORATIONS.map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  aria-label={DECORATION_LABELS[value]}
+                  onClick={() => setDecoration(value)}
+                  className={`flex h-9 w-9 items-center justify-center rounded-lg border border-paper-line bg-card transition-shadow hover:ring-2 hover:ring-film ${
+                    decoration === value ? "ring-2 ring-film ring-offset-2 ring-offset-paper" : ""
+                  }`}
+                >
+                  <DecorationPreview decoration={value} />
+                </button>
+              ))}
+            </div>
+          </div>
 
           {item.type === "photo" && (
             <div className="grid gap-2">

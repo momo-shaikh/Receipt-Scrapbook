@@ -3,6 +3,7 @@
 import { useLiveQuery } from "dexie-react-hooks";
 import {
   db,
+  DECORATIONS,
   TIMESTAMP_COLORS,
   type Decoration,
   type ItemType,
@@ -10,8 +11,6 @@ import {
   type TimestampColor,
 } from "@/lib/db";
 import { releaseCachedObjectUrl } from "@/lib/object-url-cache";
-
-const DECORATIONS: Decoration[] = ["tape", "pin", "sticker", "polaroid"];
 
 function randomDecoration(): Decoration {
   return DECORATIONS[Math.floor(Math.random() * DECORATIONS.length)];

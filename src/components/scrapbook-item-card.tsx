@@ -1,32 +1,56 @@
 "use client";
 
-import { Pin } from "lucide-react";
 import type { ScrapbookItem } from "@/lib/db";
 import { useObjectUrl } from "@/hooks/useObjectUrl";
 import { safeFormatDate } from "@/lib/format-date-range";
+import { DecorationGraphic } from "@/components/scrapbook-decorations";
 
 function digicamTimestamp(date: string) {
   return safeFormatDate(date, "''yy.M.d") ?? date;
 }
 
-function DecorationAccent({ decoration }: { decoration: ScrapbookItem["decoration"] }) {
+// Deterministic hash so each item's decoration placement is stable across
+// renders/refreshes instead of jumping around randomly every time.
+function hashSeed(seed: string): number {
+  let hash = 0;
+  for (const char of seed) {
+    hash = (hash * 31 + char.charCodeAt(0)) | 0;
+  }
+  return Math.abs(hash);
+}
+
+function decorationPlacement(id: string): React.CSSProperties {
+  const rotation = (hashSeed(id) % 30) - 15; // -15deg .. 14deg
+  const leftPercent = 18 + (hashSeed(`${id}-offset`) % 65); // 18% .. 82%
+  return {
+    position: "absolute",
+    top: "-0.75rem",
+    left: `${leftPercent}%`,
+    transform: `translateX(-50%) rotate(${rotation}deg)`,
+    zIndex: 10,
+  };
+}
+
+function DecorationAccent({ item }: { item: ScrapbookItem }) {
+  const { decoration, id } = item;
+  const placement = decorationPlacement(id);
+
   if (decoration === "tape") {
-    return (
-      <div className="washi-tape absolute -top-3 left-1/2 z-10 h-6 w-16 -translate-x-1/2 -rotate-3 rounded-sm" />
-    );
+    return <div style={placement} className="washi-tape h-6 w-16 rounded-sm" />;
   }
   if (decoration === "pin") {
-    return (
-      <Pin
-        className="absolute -top-3 left-1/2 z-10 h-6 w-6 -translate-x-1/2 fill-film text-film drop-shadow"
-        strokeWidth={1.5}
-      />
-    );
+    return <DecorationGraphic decoration="pin" style={placement} className="h-6 w-6 drop-shadow" />;
   }
   if (decoration === "sticker") {
+    return <DecorationGraphic decoration="sticker" style={placement} className="h-7 w-7" />;
+  }
+  if (decoration === "heart") {
     return (
-      <div className="absolute -top-3 -right-3 z-10 h-7 w-7 rounded-full bg-butter shadow-polaroid" />
+      <DecorationGraphic decoration="heart" style={placement} className="h-7 w-7 drop-shadow" />
     );
+  }
+  if (decoration === "star") {
+    return <DecorationGraphic decoration="star" style={placement} className="h-7 w-7 drop-shadow" />;
   }
   return null;
 }
@@ -37,7 +61,7 @@ export function ScrapbookItemCard({ item }: { item: ScrapbookItem }) {
   if (item.type === "photo") {
     return (
       <div className="w-44 shrink-0 select-none bg-card p-2.5 pb-8 shadow-polaroid sm:w-52">
-        <DecorationAccent decoration={item.decoration} />
+        <DecorationAccent item={item} />
         <div className="relative aspect-square w-full overflow-hidden bg-paper-line">
           {imageUrl && (
             // eslint-disable-next-line @next/next/no-img-element
@@ -64,7 +88,7 @@ export function ScrapbookItemCard({ item }: { item: ScrapbookItem }) {
   // receipt
   return (
     <div className="w-36 shrink-0 select-none bg-card px-3 py-4 shadow-polaroid sm:w-40">
-      <DecorationAccent decoration={item.decoration} />
+      <DecorationAccent item={item} />
       {imageUrl && (
         <div className="mb-2 aspect-[3/4] w-full overflow-hidden rounded-sm bg-paper-line">
           {/* eslint-disable-next-line @next/next/no-img-element */}
