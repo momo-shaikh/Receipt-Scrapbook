@@ -46,7 +46,8 @@ export function AddScrapbookItemDialog({
   defaultDate?: string;
 }) {
   const [type, setType] = useState<ItemType>("receipt");
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [caption, setCaption] = useState("");
   const [date, setDate] = useState(defaultDate ?? "");
   const [vendor, setVendor] = useState("");
@@ -54,29 +55,35 @@ export function AddScrapbookItemDialog({
   const [currency, setCurrency] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  const file = files[currentIndex] ?? null;
+  const isLastImage = currentIndex === files.length - 1;
   const draftKey = file ? draftKeyFor(file) : undefined;
   const previewUrl = useObjectUrl(draftKey, file ?? undefined);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: { "image/*": [] },
-    multiple: false,
+    multiple: true,
     onDrop: (accepted) => {
-      if (!accepted[0]) return;
-      if (draftKey) releaseCachedObjectUrl(draftKey);
-      setFile(accepted[0]);
+      if (accepted.length === 0) return;
+      setFiles((current) => [...current, ...accepted]);
     },
   });
+
+  function resetItemFields() {
+    setCaption("");
+    setVendor("");
+    setAmount("");
+    setCurrency("");
+  }
 
   function handleOpenChange(next: boolean) {
     if (!next) {
       if (draftKey) releaseCachedObjectUrl(draftKey);
       setType("receipt");
-      setFile(null);
-      setCaption("");
+      setFiles([]);
+      setCurrentIndex(0);
+      resetItemFields();
       setDate(defaultDate ?? "");
-      setVendor("");
-      setAmount("");
-      setCurrency("");
     }
     onOpenChange(next);
   }
@@ -100,7 +107,13 @@ export function AddScrapbookItemDialog({
         position: randomPosition(),
         existingItems: items,
       });
-      onOpenChange(false);
+      if (draftKey) releaseCachedObjectUrl(draftKey);
+      if (isLastImage) {
+        handleOpenChange(false);
+      } else {
+        resetItemFields();
+        setCurrentIndex((i) => i + 1);
+      }
     } catch {
       toast.error("Couldn't add that to your scrapbook — try again.");
     } finally {
@@ -117,11 +130,27 @@ export function AddScrapbookItemDialog({
               Add to your scrapbook
             </DialogTitle>
             <DialogDescription className="text-base">
-              Upload a receipt or photo, then caption it your way.
+              {files.length > 1
+                ? `Image ${currentIndex + 1} of ${files.length} — caption it your way.`
+                : "Upload a receipt or photo, then caption it your way."}
             </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
+            {files.length > 1 && (
+              <div className="flex justify-center gap-1.5">
+                {files.map((f, i) => (
+                  <span
+                    key={`${f.name}-${f.lastModified}-${i}`}
+                    className={cn(
+                      "h-1.5 w-1.5 rounded-full",
+                      i === currentIndex ? "bg-film" : i < currentIndex ? "bg-film/40" : "bg-paper-line",
+                    )}
+                  />
+                ))}
+              </div>
+            )}
+
             <div className="flex gap-2">
               {(["receipt", "photo"] as const).map((t) => (
                 <button
@@ -166,7 +195,7 @@ export function AddScrapbookItemDialog({
                 <>
                   <UploadCloud className="h-8 w-8 text-ink-soft" />
                   <p className="text-sm text-ink-soft">
-                    Drag an image here, or click to choose one
+                    Drag images here, or click to choose one or more
                   </p>
                 </>
               )}
@@ -201,7 +230,7 @@ export function AddScrapbookItemDialog({
 
           <DialogFooter>
             <Button type="submit" disabled={!canSubmit}>
-              Add to page
+              {isLastImage ? "Add to page" : "Save & next"}
             </Button>
           </DialogFooter>
         </form>
