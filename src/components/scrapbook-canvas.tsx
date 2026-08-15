@@ -1,6 +1,6 @@
 "use client";
 
-import { useImperativeHandle, useRef, useState } from "react";
+import { useEffect, useImperativeHandle, useRef, useState } from "react";
 import {
   DndContext,
   PointerSensor,
@@ -414,6 +414,39 @@ export function ScrapbookCanvas({
     });
     setSelectedItemId(null);
   }
+
+  useEffect(() => {
+    if (!selectedItemId || selected) return;
+
+    function handleSelectedItemKeyboardShortcut(e: KeyboardEvent) {
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) {
+        return;
+      }
+
+      if (e.key === "Delete" || e.key === "Backspace") {
+        const item = items.find((i) => i.id === selectedItemId);
+        if (!item) return;
+        e.preventDefault();
+        handleDeleteItem(item);
+        return;
+      }
+
+      if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+        const item = items.find((i) => i.id === selectedItemId);
+        if (!item) return;
+        e.preventDefault();
+        reorderLayer(
+          e.key === "ArrowUp"
+            ? bringScrapbookItemForward(item.id, items)
+            : sendScrapbookItemBackward(item.id, items),
+        );
+      }
+    }
+
+    window.addEventListener("keydown", handleSelectedItemKeyboardShortcut);
+    return () => window.removeEventListener("keydown", handleSelectedItemKeyboardShortcut);
+  }, [selectedItemId, selected, items]);
 
   return (
     <>
