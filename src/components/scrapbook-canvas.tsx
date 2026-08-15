@@ -355,6 +355,9 @@ export function ScrapbookCanvas({
   const containerRef = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState<ScrapbookItem | null>(null);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+  const [optimisticPositions, setOptimisticPositions] = useState<
+    Record<string, { x: number; y: number }>
+  >({});
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -390,6 +393,18 @@ export function ScrapbookCanvas({
     const nextX = clamp(item.position.x + deltaXPct, CANVAS_DRAG_BOUNDS.minX, CANVAS_DRAG_BOUNDS.maxX);
     const nextY = clamp(item.position.y + deltaYPct, CANVAS_DRAG_BOUNDS.minY, CANVAS_DRAG_BOUNDS.maxY);
 
+    setOptimisticPositions((current) => {
+      const next: Record<string, { x: number; y: number }> = { [item.id]: { x: nextX, y: nextY } };
+      for (const [id, override] of Object.entries(current)) {
+        if (id === item.id) continue;
+        const liveItem = items.find((i) => i.id === id);
+        if (liveItem && liveItem.position.x === override.x && liveItem.position.y === override.y) {
+          continue;
+        }
+        next[id] = override;
+      }
+      return next;
+    });
     persistPosition(item.id, { ...item.position, scale: item.position.scale ?? 1, x: nextX, y: nextY });
   }
 
@@ -411,7 +426,11 @@ export function ScrapbookCanvas({
           {items.map((item) => (
             <DraggableScrapbookItem
               key={item.id}
-              item={item}
+              item={
+                optimisticPositions[item.id]
+                  ? { ...item, position: { ...item.position, ...optimisticPositions[item.id] } }
+                  : item
+              }
               items={items}
               isSelected={selectedItemId === item.id}
               onSelect={(selectedItem) => setSelectedItemId(selectedItem.id)}
