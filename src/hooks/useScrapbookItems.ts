@@ -12,11 +12,11 @@ import {
 } from "@/lib/db";
 import { releaseCachedObjectUrl } from "@/lib/object-url-cache";
 
-function randomDecoration(): Decoration {
+export function randomDecoration(): Decoration {
   return DECORATIONS[Math.floor(Math.random() * DECORATIONS.length)];
 }
 
-function randomTimestampColor(): TimestampColor {
+export function randomTimestampColor(): TimestampColor {
   return TIMESTAMP_COLORS[Math.floor(Math.random() * TIMESTAMP_COLORS.length)];
 }
 

@@ -19,6 +19,11 @@ function hashSeed(seed: string): number {
   return Math.abs(hash);
 }
 
+export type ScrapbookItemCardData = Pick<
+  ScrapbookItem,
+  "id" | "type" | "imageBlob" | "caption" | "date" | "timestampColor" | "decoration" | "vendor" | "amount" | "currency"
+>;
+
 function decorationPlacement(id: string): React.CSSProperties {
   const rotation = (hashSeed(id) % 30) - 15; // -15deg .. 14deg
   const leftPercent = 18 + (hashSeed(`${id}-offset`) % 65); // 18% .. 82%
@@ -31,7 +36,7 @@ function decorationPlacement(id: string): React.CSSProperties {
   };
 }
 
-function DecorationAccent({ item }: { item: ScrapbookItem }) {
+function DecorationAccent({ item }: { item: ScrapbookItemCardData }) {
   const { decoration, id } = item;
   const placement = decorationPlacement(id);
 
@@ -55,7 +60,7 @@ function DecorationAccent({ item }: { item: ScrapbookItem }) {
   return null;
 }
 
-export function ScrapbookItemCard({ item }: { item: ScrapbookItem }) {
+export function ScrapbookItemCard({ item }: { item: ScrapbookItemCardData }) {
   const imageUrl = useObjectUrl(item.id, item.imageBlob);
 
   if (item.type === "photo") {
