@@ -2,12 +2,21 @@
 
 import { use, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ArrowLeft, Download, Plus } from "lucide-react";
-import { useTrip } from "@/hooks/useTrips";
+import { ArrowLeft, Download, Plus, Trash2 } from "lucide-react";
+import { useTrip, deleteTrip } from "@/hooks/useTrips";
 import { useScrapbookItems } from "@/hooks/useScrapbookItems";
 import { formatTripSubtitle } from "@/lib/format-date-range";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { ScrapbookCanvas, type ScrapbookCanvasHandle } from "@/components/scrapbook-canvas";
 import { AddScrapbookItemDialog } from "@/components/add-scrapbook-item-dialog";
 
@@ -17,11 +26,25 @@ export default function TripPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const router = useRouter();
   const { trip, loading } = useTrip(id);
   const { items } = useScrapbookItems(id);
   const [addOpen, setAddOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [exporting, setExporting] = useState(false);
   const canvasRef = useRef<ScrapbookCanvasHandle>(null);
+
+  async function handleDeleteTrip() {
+    setDeleting(true);
+    try {
+      await deleteTrip(id);
+      router.push("/");
+    } catch {
+      toast.error("Couldn't delete this trip — try again.");
+      setDeleting(false);
+    }
+  }
 
   async function handleExport() {
     if (!canvasRef.current) return;
@@ -73,11 +96,42 @@ export default function TripPage({
             {exporting ? "Exporting…" : "Export"}
           </Button>
         )}
+        <Button
+          variant="outline"
+          className="text-destructive"
+          onClick={() => setDeleteOpen(true)}
+        >
+          <Trash2 className="h-4 w-4" />
+          Delete trip
+        </Button>
         <Button onClick={() => setAddOpen(true)}>
           <Plus className="h-4 w-4" />
           Add to scrapbook
         </Button>
       </header>
+
+      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <DialogContent className="bg-paper sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="font-heading text-2xl">Delete this trip?</DialogTitle>
+            <DialogDescription>
+              This will permanently delete “{trip.title}”. This action can&apos;t be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteOpen(false)} disabled={deleting}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteTrip}
+              disabled={deleting}
+            >
+              {deleting ? "Deleting …" : "Delete trip"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <main className="mx-auto max-w-6xl px-6 py-8">
         {items.length === 0 ? (
