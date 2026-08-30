@@ -7,8 +7,8 @@ import { cn } from "@/lib/utils";
 const LOREM =
   "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. ";
 
-const REPEL_RADIUS = 55;
-const REPEL_STRENGTH = 16;
+const REPEL_RADIUS = 35;
+const REPEL_STRENGTH = 45;
 const SPRING = 0.06;
 const DAMPING = 0.82;
 const REST_EPSILON = 0.02;
