@@ -19,7 +19,15 @@ import { createTrip } from "@/hooks/useTrips";
 import { DEFAULT_THEME_COLOR } from "@/lib/db";
 import { cn } from "@/lib/utils";
 
-export function NewTripDialog() {
+export function NewTripDialog({
+  trigger,
+  triggerContent,
+}: {
+  /** Custom trigger element (e.g. a styled Button) to replace the default "+ New trip" card. */
+  trigger?: React.ReactElement;
+  /** Visible content rendered inside `trigger`. Ignored when `trigger` is omitted. */
+  triggerContent?: React.ReactNode;
+} = {}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -53,17 +61,28 @@ export function NewTripDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger
-        className={cn(
-          "group flex flex-col items-center justify-center gap-3",
-          "aspect-[3/4] rounded-2xl border-2 border-dashed border-paper-line",
-          "text-ink-soft hover:border-film hover:text-film transition-colors",
-          "bg-paper-grain",
-        )}
+        render={trigger}
+        className={
+          trigger
+            ? undefined
+            : cn(
+                "group flex flex-col items-center justify-center gap-3",
+                "aspect-[3/4] rounded-2xl border-2 border-dashed border-paper-line",
+                "text-ink-soft hover:border-film hover:text-film transition-colors",
+                "bg-paper-grain",
+              )
+        }
       >
-        <span className="flex h-30 w-30 items-center justify-center rounded-full bg-paper border-2 border-dashed border-current">
-          <Plus className="h-6 w-6" />
-        </span>
-        <span className="font-hand text-2xl">New trip</span>
+        {trigger ? (
+          triggerContent
+        ) : (
+          <>
+            <span className="flex h-30 w-30 items-center justify-center rounded-full bg-paper border-2 border-dashed border-current">
+              <Plus className="h-6 w-6" />
+            </span>
+            <span className="font-hand text-2xl">New trip</span>
+          </>
+        )}
       </DialogTrigger>
       <DialogContent className="bg-paper lg:max-w-xl">
         <form onSubmit={handleSubmit}>

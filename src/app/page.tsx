@@ -3,9 +3,20 @@
 import { useTrips } from "@/hooks/useTrips";
 import { TripCard } from "@/components/trip-card";
 import { NewTripDialog } from "@/components/new-trip-dialog";
+import { LandingHero } from "@/components/landing-hero";
 
 export default function Home() {
   const { trips } = useTrips();
+
+  if (trips.length === 0) {
+    return (
+      <div className="bg-dot-grid flex flex-1 items-center bg-paper">
+        <main className="mx-auto w-full max-w-5xl px-6">
+          <LandingHero />
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-dot-grid flex-1 bg-paper">
@@ -21,22 +32,12 @@ export default function Home() {
           </div>
         </header>
 
-        {trips.length === 0 ? (
-          <div className="mx-auto max-w-xs">
-            <NewTripDialog />
-            <p className="mt-4 text-center text-base text-ink-soft">
-              Start your first scrapbook — upload receipts and photos from a
-              trip to build a page like this one.
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 md:grid-cols-4">
-            {trips.map((trip) => (
-              <TripCard key={trip.id} trip={trip} />
-            ))}
-            <NewTripDialog />
-          </div>
-        )}
+        <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 md:grid-cols-4">
+          {trips.map((trip) => (
+            <TripCard key={trip.id} trip={trip} />
+          ))}
+          <NewTripDialog />
+        </div>
       </main>
     </div>
   );
