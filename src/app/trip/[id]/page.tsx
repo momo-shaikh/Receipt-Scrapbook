@@ -5,9 +5,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ArrowLeft, Download, Plus, Trash2 } from "lucide-react";
-import { useTrip, deleteTrip } from "@/hooks/useTrips";
+import { useTrip, deleteTrip, updateTrip } from "@/hooks/useTrips";
 import { useScrapbookItems } from "@/hooks/useScrapbookItems";
 import { formatTripSubtitle } from "@/lib/format-date-range";
+import { freshBlob } from "@/lib/blob";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -34,6 +35,22 @@ export default function TripPage({
   const [deleting, setDeleting] = useState(false);
   const [exporting, setExporting] = useState(false);
   const canvasRef = useRef<ScrapbookCanvasHandle>(null);
+
+  async function saveCoverSnapshot() {
+    if (!canvasRef.current) return;
+    try {
+      const blob = await canvasRef.current.captureCover();
+      if (!blob) return;
+      await updateTrip(id, { coverImage: await freshBlob(blob) });
+    } catch (err) {
+      console.error("Failed to save trip cover snapshot:", err);
+    }
+  }
+
+  async function handleClose() {
+    await saveCoverSnapshot();
+    router.push("/");
+  }
 
   async function handleDeleteTrip() {
     setDeleting(true);
@@ -82,6 +99,10 @@ export default function TripPage({
       <header className="mx-auto flex max-w-6xl items-center gap-4 px-6 pt-8">
         <Link
           href="/"
+          onClick={(e) => {
+            e.preventDefault();
+            void handleClose();
+          }}
           className="flex h-9 w-9 items-center justify-center rounded-full text-ink-soft hover:bg-card"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -133,19 +154,18 @@ export default function TripPage({
         </DialogContent>
       </Dialog>
 
-      <main className="mx-auto max-w-6xl px-6 py-8">
-        {items.length === 0 ? (
-          <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed border-paper-line">
+      <main className="relative mx-auto max-w-6xl px-6 py-8">
+        <ScrapbookCanvas items={items} ref={canvasRef} />
+        {items.length === 0 && (
+          <div className="pointer-events-none absolute inset-6 top-8 flex flex-col items-center justify-center gap-4">
             <p className="font-hand text-2xl text-ink-soft">
               This page is empty — add your first receipt or photo
             </p>
-            <Button onClick={() => setAddOpen(true)}>
+            <Button className="pointer-events-auto" onClick={() => setAddOpen(true)}>
               <Plus className="h-4 w-4" />
               Add to scrapbook
             </Button>
           </div>
-        ) : (
-          <ScrapbookCanvas items={items} ref={canvasRef} />
         )}
       </main>
 

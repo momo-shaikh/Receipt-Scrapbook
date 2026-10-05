@@ -6,8 +6,6 @@ export type Decoration = (typeof DECORATIONS)[number];
 export const TIMESTAMP_COLORS = ["yellow", "orange", "red", "blue"] as const;
 export type TimestampColor = (typeof TIMESTAMP_COLORS)[number];
 
-export const DEFAULT_THEME_COLOR = "#a3d9b1";
-
 export interface Trip {
   id: string;
   title: string;
@@ -15,7 +13,6 @@ export interface Trip {
   startDate: string; // ISO date
   endDate: string; // ISO date
   coverImage?: Blob;
-  themeColor: string;
   createdAt: number;
 }
 

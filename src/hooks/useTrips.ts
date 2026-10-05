@@ -2,7 +2,7 @@
 
 import { useLiveQuery } from "dexie-react-hooks";
 import { db, type Trip } from "@/lib/db";
-import { releaseCachedObjectUrl } from "@/lib/object-url-cache";
+import { freshBlob } from "@/lib/blob";
 
 export function useTrips() {
   const trips = useLiveQuery(
@@ -28,7 +28,6 @@ export async function createTrip(input: {
   destination: string;
   startDate: string;
   endDate: string;
-  themeColor: string;
 }): Promise<Trip> {
   const trip: Trip = {
     id: crypto.randomUUID(),
@@ -40,15 +39,18 @@ export async function createTrip(input: {
 }
 
 export async function updateTrip(id: string, changes: Partial<Trip>) {
-  await db.trips.update(id, changes);
+  const current = await db.trips.get(id);
+  if (!current) return;
+  const next: Trip = { ...current, ...changes };
+  if (next.coverImage) {
+    next.coverImage = await freshBlob(next.coverImage);
+  }
+  await db.trips.put(next);
 }
 
 export async function deleteTrip(id: string) {
-  const itemIds = await db.items.where("tripId").equals(id).primaryKeys();
   await db.transaction("rw", db.trips, db.items, async () => {
     await db.items.where("tripId").equals(id).delete();
     await db.trips.delete(id);
   });
-  itemIds.forEach((itemId) => releaseCachedObjectUrl(String(itemId)));
-  releaseCachedObjectUrl(id);
 }

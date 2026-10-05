@@ -1,7 +1,7 @@
 "use client";
 
 import type { ScrapbookItem } from "@/lib/db";
-import { useObjectUrl } from "@/hooks/useObjectUrl";
+import { useDataUrl } from "@/hooks/useDataUrl";
 import { safeFormatDate } from "@/lib/format-date-range";
 import { DecorationGraphic } from "@/components/scrapbook-decorations";
 
@@ -61,7 +61,7 @@ function DecorationAccent({ item }: { item: ScrapbookItemCardData }) {
 }
 
 export function ScrapbookItemCard({ item }: { item: ScrapbookItemCardData }) {
-  const imageUrl = useObjectUrl(item.id, item.imageBlob);
+  const imageUrl = useDataUrl(item.imageBlob);
 
   if (item.type === "photo") {
     return (

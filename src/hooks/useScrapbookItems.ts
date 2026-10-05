@@ -10,7 +10,7 @@ import {
   type ScrapbookItem,
   type TimestampColor,
 } from "@/lib/db";
-import { releaseCachedObjectUrl } from "@/lib/object-url-cache";
+import { freshBlob } from "@/lib/blob";
 
 export function randomDecoration(): Decoration {
   return DECORATIONS[Math.floor(Math.random() * DECORATIONS.length)];
@@ -49,9 +49,7 @@ export async function createScrapbookItem(input: {
   position: { x: number; y: number };
   existingItems: ScrapbookItem[];
 }): Promise<ScrapbookItem> {
-  const imageBlob = input.imageBlob
-    ? new Blob([input.imageBlob], { type: input.imageBlob.type })
-    : undefined;
+  const imageBlob = input.imageBlob ? await freshBlob(input.imageBlob) : undefined;
 
   const maxZIndex = input.existingItems.reduce((max, item) => Math.max(max, item.zIndex ?? 0), 0);
 
@@ -75,15 +73,25 @@ export async function createScrapbookItem(input: {
   return item;
 }
 
+async function safeUpdateItem(id: string, changes: Partial<ScrapbookItem>) {
+  const current = await db.items.get(id);
+  if (!current) return;
+  const next: ScrapbookItem = { ...current, ...changes };
+  if (next.imageBlob) {
+    next.imageBlob = await freshBlob(next.imageBlob);
+  }
+  await db.items.put(next);
+}
+
 export async function updateScrapbookItem(id: string, changes: Partial<ScrapbookItem>) {
-  await db.items.update(id, changes);
+  await safeUpdateItem(id, changes);
 }
 
 export async function updateScrapbookItemPosition(
   id: string,
   position: { x: number; y: number; rotation: number; scale: number },
 ) {
-  await db.items.update(id, { position });
+  await safeUpdateItem(id, { position });
 }
 
 function sortedByZIndex(items: ScrapbookItem[]): ScrapbookItem[] {
@@ -96,8 +104,8 @@ export async function bringScrapbookItemForward(id: string, items: ScrapbookItem
   const current = sorted[index];
   const next = sorted[index + 1];
   if (!current || !next) return;
-  await db.items.update(current.id, { zIndex: next.zIndex });
-  await db.items.update(next.id, { zIndex: current.zIndex });
+  await safeUpdateItem(current.id, { zIndex: next.zIndex });
+  await safeUpdateItem(next.id, { zIndex: current.zIndex });
 }
 
 export async function sendScrapbookItemBackward(id: string, items: ScrapbookItem[]) {
@@ -106,11 +114,10 @@ export async function sendScrapbookItemBackward(id: string, items: ScrapbookItem
   const current = sorted[index];
   const prev = sorted[index - 1];
   if (index <= 0 || !current || !prev) return;
-  await db.items.update(current.id, { zIndex: prev.zIndex });
-  await db.items.update(prev.id, { zIndex: current.zIndex });
+  await safeUpdateItem(current.id, { zIndex: prev.zIndex });
+  await safeUpdateItem(prev.id, { zIndex: current.zIndex });
 }
 
 export async function deleteScrapbookItem(id: string) {
   await db.items.delete(id);
-  releaseCachedObjectUrl(id);
 }

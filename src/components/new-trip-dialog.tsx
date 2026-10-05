@@ -16,7 +16,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createTrip } from "@/hooks/useTrips";
-import { DEFAULT_THEME_COLOR } from "@/lib/db";
 import { cn } from "@/lib/utils";
 
 export function NewTripDialog({
@@ -35,7 +34,6 @@ export function NewTripDialog({
   const [destination, setDestination] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [themeColor, setThemeColor] = useState(DEFAULT_THEME_COLOR);
 
   const canSubmit = title.trim().length > 0 && !submitting;
 
@@ -49,7 +47,6 @@ export function NewTripDialog({
         destination: destination.trim(),
         startDate,
         endDate,
-        themeColor,
       });
       setOpen(false);
       router.push(`/trip/${trip.id}`);
@@ -131,25 +128,6 @@ export function NewTripDialog({
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
                 />
-              </div>
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="themeColor">Accent color</Label>
-              <div className="flex items-center gap-3">
-                <input
-                  id="themeColor"
-                  type="color"
-                  value={themeColor}
-                  onChange={(e) => setThemeColor(e.target.value)}
-                  className={cn(
-                    "h-10 w-10 cursor-pointer rounded-full border-2 border-paper-line bg-transparent p-0",
-                    "[&::-webkit-color-swatch]:rounded-full [&::-webkit-color-swatch]:border-none",
-                    "[&::-moz-color-swatch]:rounded-full [&::-moz-color-swatch]:border-none",
-                  )}
-                />
-                <span className="font-mono text-sm text-ink-soft uppercase">
-                  {themeColor}
-                </span>
               </div>
             </div>
           </div>

@@ -28,19 +28,34 @@ function clamp(n: number, min: number, max: number) {
   return Math.min(max, Math.max(min, n));
 }
 
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function withRetry(action: () => Promise<unknown>, failureMessage: string) {
+  try {
+    await action();
+  } catch (err) {
+    console.error(`${failureMessage} — retrying:`, err);
+    try {
+      await sleep(200);
+      await action();
+    } catch (retryErr) {
+      console.error(`${failureMessage} — retry failed:`, retryErr);
+      toast.error(`${failureMessage} — try again.`);
+    }
+  }
+}
+
 function persistPosition(
   id: string,
   position: { x: number; y: number; rotation: number; scale: number },
 ) {
-  updateScrapbookItemPosition(id, position).catch(() => {
-    toast.error("Couldn't save that change — try again.");
-  });
+  void withRetry(() => updateScrapbookItemPosition(id, position), "Couldn't save that change");
 }
 
-function reorderLayer(promise: Promise<void>) {
-  promise.catch(() => {
-    toast.error("Couldn't reorder that item — try again.");
-  });
+function reorderLayer(action: () => Promise<void>) {
+  void withRetry(action, "Couldn't reorder that item");
 }
 
 function normalizeAngle(deg: number): number {
@@ -231,7 +246,7 @@ function DraggableScrapbookItem({
                   data-html2canvas-ignore="true"
                   onClick={(e) => {
                     e.stopPropagation();
-                    reorderLayer(sendScrapbookItemBackward(item.id, items));
+                    reorderLayer(() => sendScrapbookItemBackward(item.id, items));
                   }}
                   className="absolute -top-7 left-[calc(50%-4rem)] z-20 flex h-6 w-6 -translate-x-1/2 items-center justify-center rounded-full border border-paper-line bg-card text-ink-soft shadow-polaroid transition-shadow hover:ring-2 hover:ring-film"
                 />
@@ -250,7 +265,7 @@ function DraggableScrapbookItem({
                   data-html2canvas-ignore="true"
                   onClick={(e) => {
                     e.stopPropagation();
-                    reorderLayer(bringScrapbookItemForward(item.id, items));
+                    reorderLayer(() => bringScrapbookItemForward(item.id, items));
                   }}
                   className="absolute -top-7 left-[calc(50%-2rem)] z-20 flex h-6 w-6 -translate-x-1/2 items-center justify-center rounded-full border border-paper-line bg-card text-ink-soft shadow-polaroid transition-shadow hover:ring-2 hover:ring-film"
                 />
@@ -343,6 +358,7 @@ function DraggableScrapbookItem({
 
 export interface ScrapbookCanvasHandle {
   exportToPng: () => Promise<string>;
+  captureCover: () => Promise<Blob | null>;
 }
 
 export function ScrapbookCanvas({
@@ -375,6 +391,16 @@ export function ScrapbookCanvas({
           backgroundColor: getComputedStyle(document.body).backgroundColor,
         });
         return canvas.toDataURL("image/png");
+      },
+      async captureCover() {
+        const node = containerRef.current;
+        if (!node) return null;
+
+        const canvas = await html2canvas(node, {
+          scale: 2,
+          backgroundColor: getComputedStyle(document.body).backgroundColor,
+        });
+        return new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
       },
     }),
     [],
@@ -436,7 +462,7 @@ export function ScrapbookCanvas({
         const item = items.find((i) => i.id === selectedItemId);
         if (!item) return;
         e.preventDefault();
-        reorderLayer(
+        reorderLayer(() =>
           e.key === "ArrowUp"
             ? bringScrapbookItemForward(item.id, items)
             : sendScrapbookItemBackward(item.id, items),

@@ -20,7 +20,6 @@ import {
   randomDecoration,
   randomTimestampColor,
 } from "@/hooks/useScrapbookItems";
-import { releaseCachedObjectUrl } from "@/lib/object-url-cache";
 import { CANVAS_SPAWN_BOUNDS } from "@/lib/canvas-bounds";
 import type { ItemType, ScrapbookItem } from "@/lib/db";
 import { cn } from "@/lib/utils";
@@ -108,7 +107,6 @@ export function AddScrapbookItemDialog({
 
   function handleOpenChange(next: boolean) {
     if (!next) {
-      if (draftKey) releaseCachedObjectUrl(draftKey);
       setType("receipt");
       setFiles([]);
       setCurrentIndex(0);
@@ -137,7 +135,6 @@ export function AddScrapbookItemDialog({
         position: randomPosition(),
         existingItems: items,
       });
-      if (draftKey) releaseCachedObjectUrl(draftKey);
       if (isLastImage) {
         handleOpenChange(false);
       } else {

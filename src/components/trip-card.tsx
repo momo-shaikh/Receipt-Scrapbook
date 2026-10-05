@@ -2,15 +2,13 @@
 
 import Link from "next/link";
 import { motion } from "motion/react";
-import { Camera } from "lucide-react";
-import { DEFAULT_THEME_COLOR, type Trip } from "@/lib/db";
-import { useObjectUrl } from "@/hooks/useObjectUrl";
+import type { Trip } from "@/lib/db";
+import { useDataUrl } from "@/hooks/useDataUrl";
 import { formatTripSubtitle } from "@/lib/format-date-range";
 import { cn } from "@/lib/utils";
 
 export function TripCard({ trip }: { trip: Trip }) {
-  const coverUrl = useObjectUrl(trip.id, trip.coverImage);
-  const themeColor = trip.themeColor || DEFAULT_THEME_COLOR;
+  const coverUrl = useDataUrl(trip.coverImage);
 
   return (
     <Link href={`/trip/${trip.id}`} className="block">
@@ -26,19 +24,14 @@ export function TripCard({ trip }: { trip: Trip }) {
         {/* washi tape accent */}
         <div className="washi-tape absolute -top-2 left-6 z-10 h-6 w-16 -rotate-6 rounded-sm" />
 
-        <div
-          className="flex h-2/3 items-center justify-center"
-          style={coverUrl ? undefined : { backgroundColor: themeColor }}
-        >
-          {coverUrl ? (
+        <div className={cn("h-2/3", !coverUrl && "bg-dot-grid bg-paper-grain")}>
+          {coverUrl && (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={coverUrl}
               alt=""
               className="h-full w-full object-cover"
             />
-          ) : (
-            <Camera className="h-10 w-10 text-ink/40" strokeWidth={1.5} />
           )}
         </div>
 
