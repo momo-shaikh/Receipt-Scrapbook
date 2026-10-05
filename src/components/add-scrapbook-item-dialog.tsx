@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { PhotoFields, ReceiptFields } from "@/components/scrapbook-item-fields";
 import { ScrapbookItemCard, type ScrapbookItemCardData } from "@/components/scrapbook-item-card";
+import { ImageCropOverlay } from "@/components/image-crop-overlay";
 import { TimestampColorPicker } from "@/components/timestamp-color-picker";
 import {
   createScrapbookItem,
@@ -23,7 +24,7 @@ import {
   randomTimestampColor,
 } from "@/hooks/useScrapbookItems";
 import { CANVAS_SPAWN_BOUNDS } from "@/lib/canvas-bounds";
-import type { ItemType, ScrapbookItem } from "@/lib/db";
+import { DEFAULT_IMAGE_OFFSET, type ItemType, type ScrapbookItem } from "@/lib/db";
 import { cn } from "@/lib/utils";
 
 function randomPosition() {
@@ -76,6 +77,8 @@ export function AddScrapbookItemDialog({
   const defaultTimestampColor = useMemo(() => randomTimestampColor(), [draftKey]);
   const [timestampOverride, setTimestampOverride] = useState<string | null>(null);
   const timestampColor = timestampOverride ?? defaultTimestampColor;
+  const [imageOffset, setImageOffset] = useState(DEFAULT_IMAGE_OFFSET);
+  const [cropping, setCropping] = useState(false);
 
   const previewItem: ScrapbookItemCardData | null =
     file && draftKey
@@ -86,6 +89,7 @@ export function AddScrapbookItemDialog({
           caption,
           date,
           timestampColor,
+          imageOffset,
           decoration: previewDecoration,
           vendor: type === "receipt" ? vendor : undefined,
           amount: type === "receipt" && amount ? parseFloat(amount) : undefined,
@@ -108,6 +112,8 @@ export function AddScrapbookItemDialog({
     setAmount("");
     setCurrency("");
     setTimestampOverride(null);
+    setImageOffset(DEFAULT_IMAGE_OFFSET);
+    setCropping(false);
   }
 
   function handleOpenChange(next: boolean) {
@@ -138,6 +144,7 @@ export function AddScrapbookItemDialog({
         amount: type === "receipt" && amount ? parseFloat(amount) : undefined,
         currency: type === "receipt" && currency.trim() ? currency.trim() : undefined,
         timestampColor: type === "photo" ? timestampColor : undefined,
+        imageOffset: type === "photo" ? imageOffset : undefined,
         position: randomPosition(),
         existingItems: items,
       });
@@ -172,7 +179,20 @@ export function AddScrapbookItemDialog({
           <div className="flex flex-col items-center gap-4 py-3 sm:flex-row sm:items-center">
             {previewItem && (
               <div className="shrink-0 -rotate-2 sm:order-last">
-                <ScrapbookItemCard item={previewItem} />
+                <ScrapbookItemCard
+                  item={previewItem}
+                  imageOverlay={
+                    type === "photo" ? (
+                      <ImageCropOverlay
+                        active={cropping}
+                        value={imageOffset}
+                        onChange={setImageOffset}
+                        onActivate={() => setCropping(true)}
+                        onDone={() => setCropping(false)}
+                      />
+                    ) : undefined
+                  }
+                />
               </div>
             )}
 

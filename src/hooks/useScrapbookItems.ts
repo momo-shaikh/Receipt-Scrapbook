@@ -6,6 +6,7 @@ import {
   DECORATIONS,
   TIMESTAMP_COLOR_PRESETS,
   type Decoration,
+  type ImageOffset,
   type ItemType,
   type ScrapbookItem,
 } from "@/lib/db";
@@ -47,6 +48,7 @@ export async function createScrapbookItem(input: {
   amount?: number;
   currency?: string;
   timestampColor?: string;
+  imageOffset?: ImageOffset;
   position: { x: number; y: number };
   existingItems: ScrapbookItem[];
 }): Promise<ScrapbookItem> {
@@ -67,6 +69,7 @@ export async function createScrapbookItem(input: {
     position: { ...input.position, rotation: randomRotation(), scale: 1 },
     decoration: input.type === "photo" ? "polaroid" : randomDecoration(),
     timestampColor: input.timestampColor ?? randomTimestampColor(),
+    imageOffset: input.imageOffset,
     zIndex: maxZIndex + 1,
     createdAt: Date.now(),
   };
