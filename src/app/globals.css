@@ -219,22 +219,4 @@
     font-family: var(--font-mono);
     letter-spacing: 0.05em;
   }
-
-  /* Classic digicam/polaroid timestamp colors, picked per-item */
-  .timestamp-yellow {
-    color: oklch(0.85 0.15 95);
-    text-shadow: 0 0 4px oklch(0.85 0.15 95 / 0.6);
-  }
-  .timestamp-orange {
-    color: oklch(0.8 0.16 55);
-    text-shadow: 0 0 4px oklch(0.8 0.16 55 / 0.6);
-  }
-  .timestamp-red {
-    color: oklch(0.65 0.2 25);
-    text-shadow: 0 0 4px oklch(0.65 0.2 25 / 0.6);
-  }
-  .timestamp-blue {
-    color: oklch(0.8 0.1 220);
-    text-shadow: 0 0 4px oklch(0.8 0.1 220 / 0.6);
-  }
 }

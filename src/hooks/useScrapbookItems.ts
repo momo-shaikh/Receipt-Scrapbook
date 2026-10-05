@@ -4,11 +4,10 @@ import { useLiveQuery } from "dexie-react-hooks";
 import {
   db,
   DECORATIONS,
-  TIMESTAMP_COLORS,
+  TIMESTAMP_COLOR_PRESETS,
   type Decoration,
   type ItemType,
   type ScrapbookItem,
-  type TimestampColor,
 } from "@/lib/db";
 import { freshBlob } from "@/lib/blob";
 
@@ -16,8 +15,9 @@ export function randomDecoration(): Decoration {
   return DECORATIONS[Math.floor(Math.random() * DECORATIONS.length)];
 }
 
-export function randomTimestampColor(): TimestampColor {
-  return TIMESTAMP_COLORS[Math.floor(Math.random() * TIMESTAMP_COLORS.length)];
+export function randomTimestampColor(): string {
+  const presets = Object.values(TIMESTAMP_COLOR_PRESETS);
+  return presets[Math.floor(Math.random() * presets.length)];
 }
 
 function randomRotation() {
@@ -46,6 +46,7 @@ export async function createScrapbookItem(input: {
   vendor?: string;
   amount?: number;
   currency?: string;
+  timestampColor?: string;
   position: { x: number; y: number };
   existingItems: ScrapbookItem[];
 }): Promise<ScrapbookItem> {
@@ -65,7 +66,7 @@ export async function createScrapbookItem(input: {
     currency: input.currency,
     position: { ...input.position, rotation: randomRotation(), scale: 1 },
     decoration: input.type === "photo" ? "polaroid" : randomDecoration(),
-    timestampColor: randomTimestampColor(),
+    timestampColor: input.timestampColor ?? randomTimestampColor(),
     zIndex: maxZIndex + 1,
     createdAt: Date.now(),
   };

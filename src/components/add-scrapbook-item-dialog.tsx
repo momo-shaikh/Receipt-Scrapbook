@@ -13,8 +13,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { PhotoFields, ReceiptFields } from "@/components/scrapbook-item-fields";
 import { ScrapbookItemCard, type ScrapbookItemCardData } from "@/components/scrapbook-item-card";
+import { TimestampColorPicker } from "@/components/timestamp-color-picker";
 import {
   createScrapbookItem,
   randomDecoration,
@@ -71,7 +73,9 @@ export function AddScrapbookItemDialog({
     [draftKey, type],
   );
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const previewTimestampColor = useMemo(() => randomTimestampColor(), [draftKey]);
+  const defaultTimestampColor = useMemo(() => randomTimestampColor(), [draftKey]);
+  const [timestampOverride, setTimestampOverride] = useState<string | null>(null);
+  const timestampColor = timestampOverride ?? defaultTimestampColor;
 
   const previewItem: ScrapbookItemCardData | null =
     file && draftKey
@@ -81,7 +85,7 @@ export function AddScrapbookItemDialog({
           imageBlob: file,
           caption,
           date,
-          timestampColor: previewTimestampColor,
+          timestampColor,
           decoration: previewDecoration,
           vendor: type === "receipt" ? vendor : undefined,
           amount: type === "receipt" && amount ? parseFloat(amount) : undefined,
@@ -103,6 +107,7 @@ export function AddScrapbookItemDialog({
     setVendor("");
     setAmount("");
     setCurrency("");
+    setTimestampOverride(null);
   }
 
   function handleOpenChange(next: boolean) {
@@ -132,6 +137,7 @@ export function AddScrapbookItemDialog({
         vendor: type === "receipt" && vendor.trim() ? vendor.trim() : undefined,
         amount: type === "receipt" && amount ? parseFloat(amount) : undefined,
         currency: type === "receipt" && currency.trim() ? currency.trim() : undefined,
+        timestampColor: type === "photo" ? timestampColor : undefined,
         position: randomPosition(),
         existingItems: items,
       });
@@ -247,6 +253,13 @@ export function AddScrapbookItemDialog({
                 date={date}
                 onDateChange={setDate}
               />
+
+              {type === "photo" && (
+                <div className="grid gap-1.5">
+                  <Label>Timestamp color</Label>
+                  <TimestampColorPicker value={timestampColor} onChange={setTimestampOverride} />
+                </div>
+              )}
 
               {type === "receipt" && (
                 <ReceiptFields

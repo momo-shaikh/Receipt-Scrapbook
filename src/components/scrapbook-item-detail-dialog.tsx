@@ -14,8 +14,9 @@ import { Label } from "@/components/ui/label";
 import { PhotoFields, ReceiptFields } from "@/components/scrapbook-item-fields";
 import { DECORATION_LABELS, DecorationGraphic } from "@/components/scrapbook-decorations";
 import { ScrapbookItemCard, type ScrapbookItemCardData } from "@/components/scrapbook-item-card";
+import { TimestampColorPicker } from "@/components/timestamp-color-picker";
 import { deleteScrapbookItem, updateScrapbookItem } from "@/hooks/useScrapbookItems";
-import { DECORATIONS, TIMESTAMP_COLORS, type Decoration, type ScrapbookItem } from "@/lib/db";
+import { DECORATIONS, DEFAULT_TIMESTAMP_COLOR, type Decoration, type ScrapbookItem } from "@/lib/db";
 
 function DecorationPreview({ decoration }: { decoration: Decoration }) {
   if (decoration === "tape") {
@@ -39,7 +40,7 @@ export function ScrapbookItemDetailDialog({
   const [vendor, setVendor] = useState(item.vendor ?? "");
   const [amount, setAmount] = useState(item.amount != null ? String(item.amount) : "");
   const [currency, setCurrency] = useState(item.currency ?? "");
-  const [timestampColor, setTimestampColor] = useState(item.timestampColor ?? "yellow");
+  const [timestampColor, setTimestampColor] = useState(item.timestampColor ?? DEFAULT_TIMESTAMP_COLOR);
   const [decoration, setDecoration] = useState(item.decoration);
   const [saving, setSaving] = useState(false);
 
@@ -124,19 +125,7 @@ export function ScrapbookItemDetailDialog({
             {item.type === "photo" && (
               <div className="grid gap-1.5">
                 <Label>Timestamp color</Label>
-                <div className="flex gap-2">
-                  {TIMESTAMP_COLORS.map((color) => (
-                    <button
-                      key={color}
-                      type="button"
-                      aria-label={color}
-                      onClick={() => setTimestampColor(color)}
-                      className={`h-6 w-6 rounded-full border border-paper-line bg-current transition-shadow hover:ring-2 hover:ring-film timestamp-${color} ${
-                        timestampColor === color ? "ring-2 ring-film ring-offset-2 ring-offset-paper" : ""
-                      }`}
-                    />
-                  ))}
-                </div>
+                <TimestampColorPicker value={timestampColor} onChange={setTimestampColor} />
               </div>
             )}
 

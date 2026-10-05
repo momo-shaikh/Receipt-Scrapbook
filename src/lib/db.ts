@@ -3,8 +3,13 @@ import Dexie, { type EntityTable } from "dexie";
 export type ItemType = "receipt" | "photo";
 export const DECORATIONS = ["tape", "pin", "sticker", "heart", "star", "polaroid"] as const;
 export type Decoration = (typeof DECORATIONS)[number];
-export const TIMESTAMP_COLORS = ["yellow", "orange", "red", "blue"] as const;
-export type TimestampColor = (typeof TIMESTAMP_COLORS)[number];
+export const TIMESTAMP_COLOR_PRESETS = {
+  yellow: "#f4d35e",
+  orange: "#ee964b",
+  red: "#d64550",
+  blue: "#8ecae6",
+} as const;
+export const DEFAULT_TIMESTAMP_COLOR = TIMESTAMP_COLOR_PRESETS.yellow;
 
 export interface Trip {
   id: string;
@@ -28,7 +33,7 @@ export interface ScrapbookItem {
   currency?: string;
   position: { x: number; y: number; rotation: number; scale: number };
   decoration: Decoration;
-  timestampColor?: TimestampColor;
+  timestampColor?: string;
   zIndex: number;
   createdAt: number;
 }

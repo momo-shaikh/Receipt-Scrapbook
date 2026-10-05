@@ -1,6 +1,6 @@
 "use client";
 
-import type { ScrapbookItem } from "@/lib/db";
+import { DEFAULT_TIMESTAMP_COLOR, type ScrapbookItem } from "@/lib/db";
 import { useDataUrl } from "@/hooks/useDataUrl";
 import { safeFormatDate } from "@/lib/format-date-range";
 import { DecorationGraphic } from "@/components/scrapbook-decorations";
@@ -78,7 +78,11 @@ export function ScrapbookItemCard({ item }: { item: ScrapbookItemCardData }) {
             />
           )}
           <span
-            className={`timestamp-digicam timestamp-${item.timestampColor ?? "yellow"} absolute right-1.5 bottom-1.5 text-[10px]`}
+            className="timestamp-digicam absolute right-1.5 bottom-1.5 text-[10px]"
+            style={{
+              color: item.timestampColor ?? DEFAULT_TIMESTAMP_COLOR,
+              textShadow: `0 0 4px ${item.timestampColor ?? DEFAULT_TIMESTAMP_COLOR}99`,
+            }}
           >
             {digicamTimestamp(item.date)}
           </span>
