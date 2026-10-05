@@ -1,6 +1,6 @@
 "use client";
 
-import { DEFAULT_TIMESTAMP_COLOR, type ScrapbookItem } from "@/lib/db";
+import { DEFAULT_IMAGE_OFFSET, DEFAULT_TIMESTAMP_COLOR, type ScrapbookItem } from "@/lib/db";
 import { useDataUrl } from "@/hooks/useDataUrl";
 import { safeFormatDate } from "@/lib/format-date-range";
 import { DecorationGraphic } from "@/components/scrapbook-decorations";
@@ -21,7 +21,17 @@ function hashSeed(seed: string): number {
 
 export type ScrapbookItemCardData = Pick<
   ScrapbookItem,
-  "id" | "type" | "imageBlob" | "caption" | "date" | "timestampColor" | "decoration" | "vendor" | "amount" | "currency"
+  | "id"
+  | "type"
+  | "imageBlob"
+  | "caption"
+  | "date"
+  | "timestampColor"
+  | "decoration"
+  | "vendor"
+  | "amount"
+  | "currency"
+  | "imageOffset"
 >;
 
 function decorationPlacement(id: string): React.CSSProperties {
@@ -60,10 +70,17 @@ function DecorationAccent({ item }: { item: ScrapbookItemCardData }) {
   return null;
 }
 
-export function ScrapbookItemCard({ item }: { item: ScrapbookItemCardData }) {
+export function ScrapbookItemCard({
+  item,
+  imageOverlay,
+}: {
+  item: ScrapbookItemCardData;
+  imageOverlay?: React.ReactNode;
+}) {
   const imageUrl = useDataUrl(item.imageBlob);
 
   if (item.type === "photo") {
+    const offset = item.imageOffset ?? DEFAULT_IMAGE_OFFSET;
     return (
       <div className="w-44 shrink-0 select-none bg-card p-2.5 pb-8 shadow-polaroid sm:w-52">
         <DecorationAccent item={item} />
@@ -74,6 +91,7 @@ export function ScrapbookItemCard({ item }: { item: ScrapbookItemCardData }) {
               src={imageUrl}
               alt=""
               className="h-full w-full object-cover"
+              style={{ objectPosition: `${offset.x}% ${offset.y}%` }}
               draggable={false}
             />
           )}
@@ -86,6 +104,7 @@ export function ScrapbookItemCard({ item }: { item: ScrapbookItemCardData }) {
           >
             {digicamTimestamp(item.date)}
           </span>
+          {imageOverlay}
         </div>
         <p className="mt-2 truncate px-0.5 font-hand text-lg leading-tight text-ink">
           {item.caption}

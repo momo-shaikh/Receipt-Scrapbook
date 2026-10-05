@@ -11,6 +11,9 @@ export const TIMESTAMP_COLOR_PRESETS = {
 } as const;
 export const DEFAULT_TIMESTAMP_COLOR = TIMESTAMP_COLOR_PRESETS.yellow;
 
+export type ImageOffset = { x: number; y: number };
+export const DEFAULT_IMAGE_OFFSET: ImageOffset = { x: 50, y: 50 };
+
 export interface Trip {
   id: string;
   title: string;
@@ -34,6 +37,7 @@ export interface ScrapbookItem {
   position: { x: number; y: number; rotation: number; scale: number };
   decoration: Decoration;
   timestampColor?: string;
+  imageOffset?: ImageOffset;
   zIndex: number;
   createdAt: number;
 }

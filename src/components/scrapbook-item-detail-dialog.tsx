@@ -14,9 +14,16 @@ import { Label } from "@/components/ui/label";
 import { PhotoFields, ReceiptFields } from "@/components/scrapbook-item-fields";
 import { DECORATION_LABELS, DecorationGraphic } from "@/components/scrapbook-decorations";
 import { ScrapbookItemCard, type ScrapbookItemCardData } from "@/components/scrapbook-item-card";
+import { ImageCropOverlay } from "@/components/image-crop-overlay";
 import { TimestampColorPicker } from "@/components/timestamp-color-picker";
 import { deleteScrapbookItem, updateScrapbookItem } from "@/hooks/useScrapbookItems";
-import { DECORATIONS, DEFAULT_TIMESTAMP_COLOR, type Decoration, type ScrapbookItem } from "@/lib/db";
+import {
+  DECORATIONS,
+  DEFAULT_IMAGE_OFFSET,
+  DEFAULT_TIMESTAMP_COLOR,
+  type Decoration,
+  type ScrapbookItem,
+} from "@/lib/db";
 
 function DecorationPreview({ decoration }: { decoration: Decoration }) {
   if (decoration === "tape") {
@@ -42,6 +49,8 @@ export function ScrapbookItemDetailDialog({
   const [currency, setCurrency] = useState(item.currency ?? "");
   const [timestampColor, setTimestampColor] = useState(item.timestampColor ?? DEFAULT_TIMESTAMP_COLOR);
   const [decoration, setDecoration] = useState(item.decoration);
+  const [imageOffset, setImageOffset] = useState(item.imageOffset ?? DEFAULT_IMAGE_OFFSET);
+  const [cropping, setCropping] = useState(false);
   const [saving, setSaving] = useState(false);
 
   async function handleSave() {
@@ -54,6 +63,7 @@ export function ScrapbookItemDetailDialog({
         amount: item.type === "receipt" && amount ? parseFloat(amount) : undefined,
         currency: item.type === "receipt" && currency.trim() ? currency.trim() : undefined,
         timestampColor: item.type === "photo" ? timestampColor : undefined,
+        imageOffset: item.type === "photo" ? imageOffset : undefined,
         decoration,
       });
       onOpenChange(false);
@@ -74,6 +84,7 @@ export function ScrapbookItemDetailDialog({
     caption,
     date,
     timestampColor: item.type === "photo" ? timestampColor : undefined,
+    imageOffset: item.type === "photo" ? imageOffset : undefined,
     decoration,
     vendor: item.type === "receipt" ? vendor : undefined,
     amount: item.type === "receipt" && amount ? parseFloat(amount) : undefined,
@@ -91,7 +102,20 @@ export function ScrapbookItemDetailDialog({
 
         <div className="flex flex-col items-center gap-4 py-3 sm:flex-row sm:items-center">
           <div className="shrink-0 -rotate-2 sm:order-last">
-            <ScrapbookItemCard item={previewItem} />
+            <ScrapbookItemCard
+              item={previewItem}
+              imageOverlay={
+                item.type === "photo" ? (
+                  <ImageCropOverlay
+                    active={cropping}
+                    value={imageOffset}
+                    onChange={setImageOffset}
+                    onActivate={() => setCropping(true)}
+                    onDone={() => setCropping(false)}
+                  />
+                ) : undefined
+              }
+            />
           </div>
 
           <div className="grid w-full min-w-0 gap-3">
