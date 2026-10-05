@@ -191,12 +191,6 @@ function DraggableScrapbookItem({
   );
   const rotation = liveRotation ?? item.position.rotation;
 
-  useEffect(() => {
-    if (liveRotation !== null && item.position.rotation === liveRotation) {
-      setLiveRotation(null);
-    }
-  }, [item.position.rotation, liveRotation]);
-
   const [liveScale, setLiveScale] = useState<number | null>(null);
   const { isResizing, handlePointerDown: handleResizePointerDown } = useResizeGesture(
     cardRef,
@@ -208,12 +202,6 @@ function DraggableScrapbookItem({
     },
   );
   const scale = liveScale ?? itemScale;
-
-  useEffect(() => {
-    if (liveScale !== null && itemScale === liveScale) {
-      setLiveScale(null);
-    }
-  }, [itemScale, liveScale]);
 
   const style: React.CSSProperties = {
     position: "absolute",
